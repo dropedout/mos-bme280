@@ -1,0 +1,6 @@
+*pro.user
+build
+deps
+test/build*
+.clang_complete
+.tags
