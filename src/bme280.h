@@ -6,7 +6,7 @@
 #include "mgos_i2c.h"
 #include "bm280_types.h"
 
-#define BME280_ADDRESS  0x76
+#define BME280_ADDRESS  0x77
 
 extern struct mgos_i2c* gI2C;
 
@@ -35,7 +35,7 @@ public:
         return _initDone;
     }
     double getTemperature();
-    double getHumidity() const;
+    double getHumidity();
     double getPressure() const;
     const sCompensate& getCompensate() const {return _comp;}
     bool triggerMeasurement();

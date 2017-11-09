@@ -6,7 +6,7 @@
 #include <cinttypes>
 #include <iostream>
 
-#define LOG_DEBUG "DEBUG"
+#define LL_DEBUG "DEBUG"
 #define LL_ERROR "ERROR"
 #define LL_INFO "INFO"
 

@@ -51,7 +51,7 @@
 #define BME280_OVERSAMPLING_8		0x04u
 #define BME280_OVERSAMPLING_16		0x05u
 
-#define DEBUG_PRINT_STRUCT void print() {  LOG(LOG_DEBUG,("%d",get()));}
+#define DEBUG_PRINT_STRUCT void print() {  LOG(LL_DEBUG,("%d",get()));}
 
 typedef struct _sCompensate{
     uint16_t dig_T1;
@@ -106,7 +106,7 @@ typedef struct _sRegControlHumidity {
     uint8_t get() {
         return (osrs_h);
     }
-    void print() {  LOG(LOG_DEBUG,("%s : %c",__PRETTY_FUNCTION__,get()));}
+   DEBUG_PRINT_STRUCT
 } sControlHumidity;
 
 typedef struct _sRegStatus {
@@ -118,7 +118,7 @@ typedef struct _sRegStatus {
         return (measuring<<3)|inupdate;
     }
     DEBUG_PRINT_STRUCT
-    _sRegStatus& operator= (const u_int8_t& c){
+    _sRegStatus& operator= (const uint8_t& c){
         inupdate = c&0x01;
         measuring = (c>>3)&0x01;
         return *this;
