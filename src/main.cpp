@@ -37,6 +37,8 @@ enum mgos_app_init_result mgos_app_init(void) {
     
   _sensor1 = new BME280();
 
+  _sensor1->initialize();
+
   mgos_set_timer(10000, true, timer_cb, gI2C);
   mgos_rpc_add_handler( "Hum.Read", rpc_cb_chip,gI2C);
 

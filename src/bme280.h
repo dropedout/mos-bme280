@@ -6,7 +6,7 @@
 #include "mgos_i2c.h"
 #include "bm280_types.h"
 
-#define BME280_ADDRESS  0x77
+#define BME280_ADDRESS  0x76
 
 extern struct mgos_i2c* gI2C;
 
@@ -40,6 +40,7 @@ public:
     const sCompensate& getCompensate() const {return _comp;}
     bool triggerMeasurement();
 
+    bool initialize();
 };
 
 

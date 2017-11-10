@@ -32,12 +32,12 @@ public:
 
 TEST_F(UnitTestBME280, init){
     EXPECT_CALL(*_mgosI2c,mgos_i2c_get_freq(_i2c)).Times(1);
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
-            .Times(2)\
-            .WillOnce(Return(0x61))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
+            .Times(1)\
             .WillOnce(Return(0x61));
 
     _bme = new BME280();
+    _bme->initialize();
 
     EXPECT_FALSE(_bme->isInitialized());
 
@@ -45,70 +45,26 @@ TEST_F(UnitTestBME280, init){
 
 TEST_F(UnitTestBME280, initReadReadAllFFDigitis)
 {
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
+    uint8_t buffer[0xa1-0x88];
+    memset(buffer,255,25);
+
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
             .Times(1)\
             .WillOnce(Return(0x60));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T1))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_n(_i2c,BME280_ADDRESS,\
+                           BME280_REGISTER_DIG_T1,25,_))\
             .Times(1)\
-            .WillOnce(Return(0xffff));
+            .WillOnce(DoAll(SetArrayArgument<4>(buffer,buffer+25+1),Return(true)));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T2))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_n(_i2c,BME280_ADDRESS,\
+                           BME280_REGISTER_DIG_H2,6,_))\
             .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T3))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P1))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P2))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P3))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P4))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P5))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P6))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P7))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P8))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P9))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
+            .WillOnce(DoAll(SetArrayArgument<4>(buffer,buffer+6+1),Return(true)));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H1))\
-            .Times(1)\
-            .WillOnce(Return(0xff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H2))\
-            .Times(1)\
-            .WillOnce(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H3))\
-            .Times(1)\
-            .WillOnce(Return(0xff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H4))\
-            .Times(1)\
-            .WillOnce(Return(0xff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H5))\
-            .Times(2)\
-            .WillRepeatedly(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H5+1))\
-            .Times(1)\
-            .WillRepeatedly(Return(0xffff));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H6))\
-            .Times(1)\
-            .WillOnce(Return(0xff));
+
     _bme = new BME280();
+    _bme->initialize();
 
     EXPECT_TRUE(_bme->isInitialized());
 
@@ -116,7 +72,7 @@ TEST_F(UnitTestBME280, initReadReadAllFFDigitis)
     EXPECT_EQ(_bme->getCompensate().dig_H2,-1);
     EXPECT_EQ(_bme->getCompensate().dig_H3,255);
     EXPECT_EQ(_bme->getCompensate().dig_H4,4095);
-    EXPECT_EQ(_bme->getCompensate().dig_H5,-1);
+    EXPECT_EQ(_bme->getCompensate().dig_H5,4095);
     EXPECT_EQ(_bme->getCompensate().dig_H6,-1);
 
     EXPECT_EQ(_bme->getCompensate().dig_T1,65535);
@@ -137,70 +93,24 @@ TEST_F(UnitTestBME280, initReadReadAllFFDigitis)
 
 TEST_F(UnitTestBME280, initReadAllZeroDigits)
 {
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
+    uint8_t buffer[0xa1-0x88] {0};
+
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CHIPID))\
             .Times(1)\
             .WillOnce(Return(0x60));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T1))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_n(_i2c,BME280_ADDRESS,\
+                           BME280_REGISTER_DIG_T1,25,_))\
             .Times(1)\
-            .WillOnce(Return(0x00));
+            .WillOnce(DoAll(SetArrayArgument<4>(buffer,buffer+25+1),Return(true)));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T2))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_n(_i2c,BME280_ADDRESS,\
+                           BME280_REGISTER_DIG_H2,6,_))\
             .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_T3))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P1))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P2))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P3))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P4))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P5))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P6))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P7))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P8))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_P9))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
+            .WillOnce(DoAll(SetArrayArgument<4>(buffer,buffer+6+1),Return(true)));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H1))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H2))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H3))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H4))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H5))\
-            .Times(2)\
-            .WillRepeatedly(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H5+1))\
-            .Times(1)\
-            .WillRepeatedly(Return(0x00));
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_DIG_H6))\
-            .Times(1)\
-            .WillOnce(Return(0x00));
     _bme = new BME280();
+    _bme->initialize();
 
     EXPECT_TRUE(_bme->isInitialized());
 
@@ -228,14 +138,18 @@ TEST_F(UnitTestBME280, initReadAllZeroDigits)
 
 TEST_F(UnitTestBME280, readTemperatureAdc)
 {
-    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_CHIPID)))\
+    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_CHIPID)))\
             .WillByDefault(Return(0x60));
-    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_STATUS)))\
+    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_STATUS)))\
             .WillByDefault(Return(0x00));
     _bme = new BME280();
+    _bme->initialize();
 
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_write_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CONTROL,_))\
+                .Times(1)\
+                .WillOnce(Return(true));
 
-    EXPECT_CALL(*_mgosI2c,mgos_i2c_write_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CONTROL,(5<<5)|(5<<2)|3))\
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_write_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CONTROLHUMID,_))\
                 .Times(1)\
                 .WillOnce(Return(true));
 
@@ -251,14 +165,18 @@ TEST_F(UnitTestBME280, readTemperatureAdc)
 
 TEST_F(UnitTestBME280, readTemperatureAdcNonZero)
 {
-    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_CHIPID)))\
+    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_CHIPID)))\
             .WillByDefault(Return(0x60));
-    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_w(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_STATUS)))\
+    ON_CALL(*_mgosI2c,mgos_i2c_read_reg_b(_i2c,BME280_ADDRESS,Ge(BME280_REGISTER_STATUS)))\
             .WillByDefault(Return(0x00));
     uint8_t buffer[8] {0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55};
     _bme = new BME280();
+    _bme->initialize();
 
     EXPECT_CALL(*_mgosI2c,mgos_i2c_write_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CONTROL,_))\
+                .Times(1)\
+                .WillOnce(Return(true));
+    EXPECT_CALL(*_mgosI2c,mgos_i2c_write_reg_b(_i2c,BME280_ADDRESS,BME280_REGISTER_CONTROLHUMID,_))\
                 .Times(1)\
                 .WillOnce(Return(true));
 
@@ -268,11 +186,6 @@ TEST_F(UnitTestBME280, readTemperatureAdcNonZero)
             .WillOnce(DoAll(SetArrayArgument<4>(buffer,buffer+7+1),Return(true)));
 
     _bme->triggerMeasurement();
-
-//    EXPECT_CALL(*_mgosI2c,mgos_i2c_read_reg_n(_i2c,BME280_ADDRESS,BME280_REGISTER_PRESSUREDATA,8,NotNull()))\
-//                .Times(1)\
-//                .WillOnce(Return(true));
-
 
     EXPECT_EQ(_bme->getTemperature(),0);
 }

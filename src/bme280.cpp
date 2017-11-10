@@ -11,57 +11,68 @@
 #include "bme280.h"
 
 BME280::BME280():
-    _initDone(false){
+    _initDone(false){}
 
-    if (0x60 == mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_CHIPID))
+bool BME280::initialize(){
+
+    bool ret = false;
+    uint8_t chipid = mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_CHIPID);
+
+    if (0x60 == chipid)
     {
         // load calibration data...
-        _comp.dig_T1  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_T1);
-        _comp.dig_T2  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_T2);
-        _comp.dig_T3  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_T3);
+        uint8_t buffer[BME280_REGISTER_DIG_H1-BME280_REGISTER_DIG_T1] {0};
 
-        _comp.dig_P1  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P1);
-        _comp.dig_P2  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P2);
-        _comp.dig_P3  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P3);
-        _comp.dig_P4  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P4);
-        _comp.dig_P5  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P5);
-        _comp.dig_P6  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P6);
-        _comp.dig_P7  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P7);
-        _comp.dig_P8  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P8);
-        _comp.dig_P9  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_P9);
+        ret = mgos_i2c_read_reg_n(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_T1,\
+                                  BME280_REGISTER_DIG_H1-BME280_REGISTER_DIG_T1,buffer);
 
-        _comp.dig_H1  = mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H1);
-        _comp.dig_H2  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H2);
-        _comp.dig_H3  = mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H3);
+        _comp.dig_T1  = buffer[0]|buffer[1]<<8;
+        _comp.dig_T2  = (int16_t)buffer[2]|buffer[3]<<8;
+        _comp.dig_T3  = (int16_t)buffer[4]|buffer[5]<<8;
 
-        _comp.dig_H4  = mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H4) << 4;		// 11:4
-        _comp.dig_H4 |= mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H5) & 0x0f;	// 3:0
+        _comp.dig_P1  = buffer[6]|buffer[7]<<8;
+        _comp.dig_P2  = (int16_t)buffer[8]|buffer[9]<<8;
+        _comp.dig_P3  = (int16_t)buffer[10]|buffer[11]<<8;
+        _comp.dig_P4  = (int16_t)buffer[12]|buffer[13]<<8;
+        _comp.dig_P5  = (int16_t)buffer[14]|buffer[15]<<8;
+        _comp.dig_P6  = (int16_t)buffer[16]|buffer[17]<<8;
+        _comp.dig_P7  = (int16_t)buffer[18]|buffer[19]<<8;
+        _comp.dig_P8  = (int16_t)buffer[20]|buffer[21]<<8;
+        _comp.dig_P9  = (int16_t)buffer[22]|buffer[23]<<8;
 
-        _comp.dig_H5  = mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H5) >> 4;		// 3:0
-        _comp.dig_H5 |= mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H5+1) << 4;		// 11:4
+        _comp.dig_H1  = buffer[24];
 
-        _comp.dig_H6  = mgos_i2c_read_reg_b(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H6);
+        ret = mgos_i2c_read_reg_n(gI2C,BME280_ADDRESS,BME280_REGISTER_DIG_H2,\
+                                  BME280_REGISTER_DIG_H6-BME280_REGISTER_DIG_H2,buffer);
+        _comp.dig_H2  = (int16_t)buffer[0]|buffer[1]<<8;
+        _comp.dig_H3  = buffer[2];
+
+        _comp.dig_H4  = (int16_t)buffer[3] << 4;		// 11:4
+        _comp.dig_H4 |= (int16_t)buffer[4] & 0x0f;	// 3:0
+
+        _comp.dig_H5  = (int16_t)buffer[5] >> 4;		// 3:0
+        _comp.dig_H5 |= (int16_t)buffer[6] << 4;		// 11:4
+
+        _comp.dig_H6  = (int8_t)buffer[7];
 
 
         LOG(LL_INFO,("t1: %d, t2: %d, t3: %d \n",\
                       _comp.dig_T1,_comp.dig_T2,_comp.dig_T3));
-        LOG(LL_INFO,("p1: %d,p2: %d,p3: %d,p4: %d\n",\
-                      _comp.dig_P1,_comp.dig_P2,_comp.dig_P3,_comp.dig_P4));
-       	LOG(LL_INFO,("p5: %d,",_comp.dig_P5));
+        LOG(LL_INFO,("p1: %d,p2: %d,p3: %d,p4: %d, p5: %d,\n",\
+                      _comp.dig_P1,_comp.dig_P2,_comp.dig_P3,_comp.dig_P4,_comp.dig_P5));
         LOG(LL_INFO,("p6: %d,p7: %d,p8: %d,p9: %d\n",_comp.dig_P6,_comp.dig_P7,_comp.dig_P8,_comp.dig_P9));
-        
         LOG(LL_INFO,("h1: %d,h2: %d,h3: %d,h4: %d\n",\
                       _comp.dig_H1,_comp.dig_H2,_comp.dig_H3,_comp.dig_H4));
-
-				LOG(LL_INFO,("h5: %d,h6: %d",_comp.dig_H5,_comp.dig_H6));
+        LOG(LL_INFO,("h5: %d,h6: %d",_comp.dig_H5,_comp.dig_H6));
         _initDone = true;
     }
     else
     {
-        LOG(LL_ERROR, ("Wrong Chip Id : %x",mgos_i2c_read_reg_w(gI2C,BME280_ADDRESS,BME280_REGISTER_CHIPID)));
+        LOG(LL_ERROR, ("Wrong Chip Id : %x",chipid));
     }
     LOG(LL_INFO, ("Frequenz i2c: %d",  mgos_i2c_get_freq(gI2C)));
 
+    return ret;
 }
 
 double BME280::getTemperature()

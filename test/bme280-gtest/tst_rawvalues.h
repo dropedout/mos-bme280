@@ -15,7 +15,7 @@ TEST(RawValues,testRegRawValue) {
     dut = buffer;
     EXPECT_EQ(dut.get(),0x80000);
 
-    buffer[0] = 0xab;buffer[1] = 0xcd;buffer[0] = 0xef;
+    buffer[0] = 0xab;buffer[1] = 0xcd;buffer[2] = 0xef;
     dut = buffer;
     EXPECT_EQ(dut.get(),0xabcde);
 }
